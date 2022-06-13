@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/hariaakash/spext-assignment#readme",
   "dependencies": {
+    "joi": "^17.6.0",
     "moleculer": "^0.14.21"
   },
   "devDependencies": {
