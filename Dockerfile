@@ -1,4 +1,8 @@
-FROM zenika/alpine-chrome:with-puppeteer
+FROM node:16.15.1-alpine3.16
+
+# copy ffmpeg bins from mwader/static-ffmpeg
+COPY --from=mwader/static-ffmpeg:5.0.1-3 /ffmpeg /usr/local/bin/
+COPY --from=mwader/static-ffmpeg:5.0.1-3 /ffprobe /usr/local/bin/
 
 ARG NODE_ENV=production
 

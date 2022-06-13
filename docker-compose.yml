@@ -4,9 +4,9 @@ networks:
     micros:
         driver: overlay
         attachable: true
-    db:
-        driver: overlay
-        attachable: true
+    # db:
+    #     driver: overlay
+    #     attachable: true
 
 services:
     app:
@@ -29,13 +29,13 @@ services:
             - .:/app
         networks:
             - micros
-            - db
+            # - db
 
-    mongodb:
-        image: bitnami/mongodb:4.4
-        ports:
-            - 27017:27017
-        volumes:
-            - ./data/mongodb:/bitnami/mongodb
-        networks:
-            - db
+    # mongodb:
+    #     image: bitnami/mongodb:4.4
+    #     ports:
+    #         - 27017:27017
+    #     volumes:
+    #         - ./data/mongodb:/bitnami/mongodb
+    #     networks:
+    #         - db

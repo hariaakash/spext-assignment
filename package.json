@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "moleculer-runner services",
+    "dev": "moleculer-runner --hot services",
+    "dev:local": "moleculer-runner --env --hot services",
+    "eslint:dry": "eslint . --quiet",
+    "eslint:fix": "eslint . --quiet --fix"
   },
   "repository": {
     "type": "git",
@@ -17,9 +21,16 @@
   },
   "homepage": "https://github.com/hariaakash/spext-assignment#readme",
   "dependencies": {
+    "@ffmpeg/core": "^0.10.0",
+    "@ffmpeg/ffmpeg": "^0.10.1",
+    "async": "^3.2.4",
+    "ffprobe": "^1.1.2",
+    "ffprobe-static": "^3.0.0",
+    "fs-extra": "^10.1.0",
     "joi": "^17.6.0",
     "minio": "^7.0.28",
-    "moleculer": "^0.14.21"
+    "moleculer": "^0.14.21",
+    "protobufjs": "^6.11.3"
   },
   "devDependencies": {
     "eslint": "^8.17.0",
