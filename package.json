@@ -1,0 +1,25 @@
+{
+  "name": "spext-assignment",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hariaakash/spext-assignment.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hariaakash/spext-assignment/issues"
+  },
+  "homepage": "https://github.com/hariaakash/spext-assignment#readme",
+  "dependencies": {
+    "moleculer": "^0.14.21"
+  },
+  "devDependencies": {
+    "eslint": "^8.17.0"
+  }
+}

@@ -1,0 +1,14 @@
+.git
+.gitignore
+.gitlab-ci.yml
+.eslintrc.js
+.dockerignore
+.gcloudignore
+app.yml
+README.md
+Dockerfile
+docker-compose.yml
+backend-*.yml
+
+./ci
+./data
