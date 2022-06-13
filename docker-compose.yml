@@ -18,10 +18,11 @@ services:
         environment:
             NODE_ENV: development
             ADAPTER: mongodb://mongodb:27017/spext
+            # ADAPTER: mongodb+srv://appengine:EkamMJZj4pzTOxMR@production.z8a5n.mongodb.net/tabpro?retryWrites=true&w=majority
             LOGLEVEL: debug
             S3_URI: storage.googleapis.com
-            S3_ACCESS_KEY: GOOG1E6OORGUECAWTUIJDXE7ZW2APDBA7KBBNDW44K4ZUIBZQQ3BVDBXPJSXA
-            S3_SECRET_KEY: PAcnGdo364eW+GlKRXXJePoZhCCHJKHgjX5vEiaS
+            S3_ACCESS_KEY: GOOG1EFI6GOSJ63SMA7NSH5YW6FFXCI3UIX5EO2LXWAFCV7GXYD376BJ5SYMI
+            S3_SECRET_KEY: jLCJKmLJmSHvf73oOJ5I1a8lztx+bg++96km5zUq
             S3_BUCKET: spext
             S3_REGION: asia-south1
         volumes:
