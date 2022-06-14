@@ -17,4 +17,5 @@ const minioClient = new Minio.Client({
 module.exports = {
   bucket,
   client: minioClient,
+  putObject: async (name, { stream, meta }) => minioClient.putObject(bucket, name, stream, null, meta),
 };

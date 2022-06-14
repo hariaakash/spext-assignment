@@ -4,9 +4,9 @@ networks:
     micros:
         driver: overlay
         attachable: true
-    # db:
-    #     driver: overlay
-    #     attachable: true
+    db:
+        driver: overlay
+        attachable: true
 
 services:
     app:
@@ -21,21 +21,21 @@ services:
             # ADAPTER: mongodb+srv://appengine:EkamMJZj4pzTOxMR@production.z8a5n.mongodb.net/tabpro?retryWrites=true&w=majority
             LOGLEVEL: debug
             S3_URI: storage.googleapis.com
-            S3_ACCESS_KEY: GOOG1EFI6GOSJ63SMA7NSH5YW6FFXCI3UIX5EO2LXWAFCV7GXYD376BJ5SYMI
-            S3_SECRET_KEY: jLCJKmLJmSHvf73oOJ5I1a8lztx+bg++96km5zUq
+            S3_ACCESS_KEY: GOOG1ETTBFXU2NF6M3PIVESBBLBDSZZGTJY6AA25A24LAXE7NAGAP6YMGP3SI
+            S3_SECRET_KEY: vRpIp5SjK95lV58CjlBgKU4vmXB7cMVmaN/b1RSq
             S3_BUCKET: spext
             S3_REGION: asia-south1
         volumes:
             - .:/app
         networks:
             - micros
-            # - db
+            - db
 
-    # mongodb:
-    #     image: bitnami/mongodb:4.4
-    #     ports:
-    #         - 27017:27017
-    #     volumes:
-    #         - ./data/mongodb:/bitnami/mongodb
-    #     networks:
-    #         - db
+    mongodb:
+        image: bitnami/mongodb:4.4
+        ports:
+            - 27017:27017
+        volumes:
+            - ./data/mongodb:/bitnami/mongodb
+        networks:
+            - db
