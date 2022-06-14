@@ -12,6 +12,8 @@ const FFProbeMixin = require('../mixins/ffprobe.mixin');
 const model = require('../models/Media');
 const conversions = require('../static/conversions');
 
+const availableExtensions = [...conversions.audio, ...conversions.video];
+
 module.exports = {
   name: 'media',
   mixins: [
@@ -62,6 +64,9 @@ module.exports = {
           createEntity: async () => {
             const process = { action: 'upload' };
             const ext = mime.extension(ctx.params.mimetype);
+            if (!availableExtensions.includes(ext)) {
+              throw new MoleculerClientError('File type not supported', 422, 'CLIENT_VALIDATION', { conversions });
+            }
             const res = await this.adapter.insert({
               name: ctx.params.name,
               processes: [process],
