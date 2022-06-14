@@ -8,7 +8,7 @@ module.exports = {
   name: 'apiMain',
   mixins: [ApiGateway, RouterSettings, Service],
   settings: {
-    services: ['main', 'media', 'common'],
+    services: ['media', 'ffmpeg', 'common'],
     port: process.env.PORT || 3000,
     cors: {
       methods: ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT'],

@@ -1,25 +1,25 @@
 const _ = require('lodash');
 const async = require('async');
+const fse = require('fs-extra');
+const mime = require('mime-types');
+const { nanoid } = require('nanoid');
 const Joi = require('joi');
 const { MoleculerClientError } = require('moleculer').Errors;
-const { nanoid } = require('nanoid');
-const fse = require('fs-extra');
 
-const DbMixin = require('../mixins/mongo.adapter');
-const FFMPEGMixin = require('../mixins/ffmpeg.mixin');
-const model = require('../models/Media');
 const s3 = require('../utils/s3.client');
-
-const environment = process.env.NODE_ENV || 'development';
+const DbMixin = require('../mixins/mongo.adapter');
+const FFProbeMixin = require('../mixins/ffprobe.mixin');
+const model = require('../models/Media');
+const conversions = require('../static/conversions');
 
 module.exports = {
   name: 'media',
   mixins: [
     DbMixin(model),
-    FFMPEGMixin,
+    FFProbeMixin,
   ],
   settings: {
-    fields: ['_id', 'name', 'codecType', 'codecName', 'duration', 'rawInfo', 'formats', 'processes', 'status'],
+    fields: ['_id', 'name', 'ext', 'codecType', 'codecName', 'duration', 'rawInfo', 'formats', 'processes', 'status'],
   },
   actions: {
     paginatedList: {
@@ -57,61 +57,15 @@ module.exports = {
         const check = await this.adapter.model.findOne({ name: ctx.params.name });
         if (check) throw new MoleculerClientError('Media with name already exists', 422, 'CLIENT_VALIDATION');
 
-        ctx.emit('media.handle', { ...ctx.params });
-
-        return { message: 'File processing in progress' };
-      },
-    },
-    'process-status': {
-      params: () => Joi.object().keys({
-        name: Joi.string().required(),
-        process: Joi.string().required(),
-        from: Joi.string().required(),
-        to: Joi.string().required(),
-        progress: Joi.number(),
-        error: Joi.string(),
-      }),
-      async handler(ctx) {
-        const query = {
-          name: ctx.params.name,
-          'processes.action': ctx.params.process,
-          'processes.status': ctx.params.from,
-        };
-        const updates = {
-          'processes.$.status': ctx.params.to,
-          'processes.$.updatedAt': Date.now(),
-        };
-        if (ctx.params.progress) updates['processes.$.progress'] = ctx.params.progress;
-        if (ctx.params.error) updates['processes.$.error'] = ctx.params.error;
-        await this.adapter.model.updateOne(query, updates);
-      },
-    },
-  },
-  methods: {
-    'entity-assert': {
-      async handler(ctx) {
-        const query = { ..._.pick(ctx.params, ['entity', 'entityId']) };
-        ctx.locals.file = await this.adapter.model.findOne(query);
-        if (!ctx.locals.file) ctx.locals.file = await this.adapter.insert(query);
-      },
-    },
-    constructUri({ name, ext }) {
-      const uri = `${environment}/${name}.${ext}`;
-      return uri;
-    },
-  },
-  events: {
-    'media.handle': {
-      async handler(ctx) {
-        // params: { name, stream, mimetype }
-
         await async.auto({
           // 1. Create DB entity
           createEntity: async () => {
             const process = { action: 'upload' };
+            const ext = mime.extension(ctx.params.mimetype);
             const res = await this.adapter.insert({
               name: ctx.params.name,
               processes: [process],
+              formats: [ext],
             });
             return res;
           },
@@ -142,11 +96,7 @@ module.exports = {
           updateMediaMeta: [
             'getMediaMeta',
             async (res) => {
-              const ext = res.getMediaMeta.codecName;
-              const update = {
-                ..._.pick(res.getMediaMeta, ['codecType', 'codecName', 'duration', 'rawInfo']),
-                $push: { formats: ext },
-              };
+              const update = { ..._.pick(res.getMediaMeta, ['codecType', 'codecName', 'duration', 'rawInfo']) };
               await this.adapter.model.updateOne({ name: ctx.params.name }, update);
             },
           ],
@@ -163,12 +113,15 @@ module.exports = {
                   from: 'pending',
                   to: 'started',
                 });
-                const ext = res.getMediaMeta.codecName;
-                const uri = this.constructUri({ name: ctx.params.name, ext });
+                const [ext] = res.createEntity.formats;
+                const uri = await ctx.call('common.constructUri', { name: ctx.params.name, ext });
                 // 5.2. Upload
+                const fileStream = fse.createReadStream(res.storeFileLocally.path);
+                const { size } = await fse.stat(res.storeFileLocally.path);
                 await s3.putObject(uri, {
-                  stream: ctx.params.stream,
+                  stream: fileStream,
                   meta: { 'Content-Type': ctx.params.mimetype },
+                  size,
                 });
 
                 // 5.3. WIP update upload progress
@@ -205,6 +158,96 @@ module.exports = {
             async () => this.adapter.model.updateOne({ name: ctx.params.name }, { status: true }),
           ],
         });
+
+        // ctx.emit('media.handle', { ...ctx.params });
+
+        return { message: 'File processing in progress' };
+      },
+    },
+    'process-status': {
+      params: () => Joi.object().keys({
+        name: Joi.string().required(),
+        process: Joi.string().required(),
+        from: Joi.string().required(),
+        to: Joi.string().required(),
+        progress: Joi.number(),
+        error: Joi.string(),
+        ext: Joi.string(),
+      }),
+      async handler(ctx) {
+        const query = {
+          name: ctx.params.name,
+          'processes.action': ctx.params.process,
+          'processes.status': ctx.params.from,
+        };
+        const updates = {
+          'processes.$.status': ctx.params.to,
+          'processes.$.updatedAt': Date.now(),
+        };
+        if (ctx.params.ext) query['processes.ext'] = ctx.params.ext;
+        if (ctx.params.progress) updates['processes.$.progress'] = ctx.params.progress;
+        if (ctx.params.error) updates['processes.$.error'] = ctx.params.error;
+        await this.adapter.model.updateOne(query, updates);
+      },
+    },
+    getAvailableConversion: {
+      async handler(ctx) {
+        const entity = await this.actions.get(ctx.params);
+        const list = conversions[entity.codecType];
+
+        return { entity, availableConversions: list.filter((x) => !entity.formats.includes(x)) };
+      },
+    },
+    convert: {
+      params: () => Joi.object().keys({
+        name: Joi.string().required(),
+        ext: Joi.string().required(),
+      }),
+      async handler(ctx) {
+        const { entity, availableConversions } = await this.actions.getAvailableConversion({ name: ctx.params.name });
+        if (!availableConversions.includes(ctx.params.ext)) {
+          throw new MoleculerClientError('Conversion for media not available', 422, 'CLIENT_VALIDATION');
+        }
+
+        const updates = {
+          $push: {
+            processes: {
+              action: 'convert',
+              ext: ctx.params.ext,
+            },
+          },
+        };
+        await this.adapter.model.updateOne({ name: ctx.params.name }, updates);
+        ctx.emit('ffmpeg.convert', { ..._.pick(ctx.params, ['name', 'ext']), fromExt: entity.formats[0] });
+      },
+    },
+    addExt: {
+      params: () => Joi.object().keys({
+        name: Joi.string().required(),
+        ext: Joi.string().required(),
+      }),
+      async handler(ctx) {
+        const query = {
+          name: ctx.params.name,
+          'processes.action': 'convert',
+          'processes.ext': ctx.params.ext,
+        };
+        const updates = {
+          $push: { formats: ctx.params.ext },
+          'processes.$.progress': 100,
+          'processes.$.status': 'completed',
+          'processes.$.updatedAt': Date.now(),
+        };
+        await this.adapter.model.updateOne(query, updates);
+      },
+    },
+  },
+  methods: {
+    'entity-assert': {
+      async handler(ctx) {
+        const query = { ..._.pick(ctx.params, ['entity', 'entityId']) };
+        ctx.locals.file = await this.adapter.model.findOne(query);
+        if (!ctx.locals.file) ctx.locals.file = await this.adapter.insert(query);
       },
     },
   },

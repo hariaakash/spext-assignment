@@ -2,6 +2,8 @@ const os = require('os');
 const async = require('async');
 const { MoleculerError } = require('moleculer').Errors;
 
+const environment = process.env.NODE_ENV || 'development';
+
 module.exports = {
   name: 'common',
   actions: {
@@ -12,6 +14,13 @@ module.exports = {
           cpu: async () => this.cpuUsage(),
         });
         return { hello: 'world', ...res };
+      },
+    },
+    constructUri: {
+      async handler(ctx) {
+        const { name, ext } = ctx.params;
+        const uri = `${environment}/${name}.${ext}`;
+        return uri;
       },
     },
   },

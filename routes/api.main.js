@@ -15,6 +15,14 @@ const publicRoutes = [
       'POST /:name': 'multipart:apiMain.media-upload',
     },
   },
+  {
+    path: '/conversion',
+    aliases: {
+      'GET /': 'apiMain.conversion-list',
+      'GET /:name': 'apiMain.conversion-get',
+      'POST /:name': 'apiMain.conversion-process',
+    },
+  },
 ];
 
 // const authorizedRoutes = [];

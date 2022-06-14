@@ -14,7 +14,10 @@ const schema = new Schema({
       status: { type: String, enum: ['pending', 'started', 'completed', 'error'], default: 'pending' },
       createdAt: { type: Date, default: Date.now },
       updatedAt: { type: Date, default: Date.now },
+      // error if action failed
       error: { type: String },
+      // ext if action is convert
+      ext: { type: String },
     },
   ],
   status: { type: Boolean, default: false },
