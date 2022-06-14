@@ -10,6 +10,7 @@ const s3 = require('../utils/s3.client');
 const DbMixin = require('../mixins/mongo.adapter');
 const FFProbeMixin = require('../mixins/ffprobe.mixin');
 const model = require('../models/Media');
+const { JOI_ID } = require('../utils/joi.schema');
 const conversions = require('../static/conversions');
 
 const availableExtensions = [...conversions.audio, ...conversions.video];
@@ -21,7 +22,7 @@ module.exports = {
     FFProbeMixin,
   ],
   settings: {
-    fields: ['_id', 'name', 'ext', 'codecType', 'codecName', 'duration', 'rawInfo', 'formats', 'processes', 'status'],
+    fields: ['_id', 'user', 'name', 'ext', 'codecType', 'codecName', 'duration', 'rawInfo', 'formats', 'processes', 'status'],
   },
   actions: {
     paginatedList: {
@@ -31,6 +32,9 @@ module.exports = {
         sort: Joi.string().default(''),
         search: Joi.string().default(''),
         searchFields: Joi.string().default(''),
+        query: Joi.object().keys({
+          user: JOI_ID.required(),
+        }).required(),
       }).min(1),
       async handler(ctx) {
         const entity = await this.actions.list({ ...ctx.params });
@@ -39,10 +43,11 @@ module.exports = {
     },
     get: {
       params: () => Joi.object().keys({
+        user: JOI_ID.required(),
         name: Joi.string().required(),
       }),
       async handler(ctx) {
-        const entity = await this.adapter.model.findOne({ name: ctx.params.name });
+        const entity = await this.adapter.model.findOne({ ..._.pick(ctx.params, ['name', 'user']) });
         if (!entity) throw new MoleculerClientError('Media not found', 404, 'NOT_FOUND');
 
         return entity;
@@ -50,13 +55,15 @@ module.exports = {
     },
     upload: {
       params: () => Joi.object().keys({
+        user: JOI_ID.required(),
         name: Joi.string().required(),
         stream: Joi.any().required(),
         mimetype: Joi.string().required(),
       }),
       async handler(ctx) {
         // Check if media with name already exists, if exists throw error
-        const check = await this.adapter.model.findOne({ name: ctx.params.name });
+        const query = { ..._.pick(ctx.params, ['user', 'name']) };
+        const check = await this.adapter.model.findOne(query);
         if (check) throw new MoleculerClientError('Media with name already exists', 422, 'CLIENT_VALIDATION');
 
         await async.auto({
@@ -68,7 +75,7 @@ module.exports = {
               throw new MoleculerClientError('File type not supported', 422, 'CLIENT_VALIDATION', { conversions });
             }
             const res = await this.adapter.insert({
-              name: ctx.params.name,
+              ..._.pick(ctx.params, ['user', 'name']),
               processes: [process],
               formats: [ext],
             });
@@ -113,13 +120,13 @@ module.exports = {
               try {
                 // 5.1. Set progress to started
                 await this.actions['process-status']({
-                  name: ctx.params.name,
+                  ..._.pick(ctx.params, ['user', 'name']),
                   process: 'upload',
                   from: 'pending',
                   to: 'started',
                 });
                 const [ext] = res.createEntity.formats;
-                const uri = await ctx.call('common.constructUri', { name: ctx.params.name, ext });
+                const uri = await ctx.call('common.constructUri', { ..._.pick(ctx.params, ['user', 'name']), ext });
                 // 5.2. Upload
                 const fileStream = fse.createReadStream(res.storeFileLocally.path);
                 const { size } = await fse.stat(res.storeFileLocally.path);
@@ -134,7 +141,7 @@ module.exports = {
 
                 // 5.4. Set progress to complete
                 await this.actions['process-status']({
-                  name: ctx.params.name,
+                  ..._.pick(ctx.params, ['user', 'name']),
                   process: 'upload',
                   from: 'started',
                   to: 'completed',
@@ -144,7 +151,7 @@ module.exports = {
                 // 5.5. Any error set the error and status of process to error
                 const error = JSON.stringify(err, Object.getOwnPropertyNames(err));
                 await this.actions['process-status']({
-                  name: ctx.params.name,
+                  ..._.pick(ctx.params, ['user', 'name']),
                   process: 'upload',
                   from: 'started',
                   to: 'error',
@@ -160,7 +167,7 @@ module.exports = {
           ],
           updateMediaStatus: [
             'uploadFile',
-            async () => this.adapter.model.updateOne({ name: ctx.params.name }, { status: true }),
+            async () => this.adapter.model.updateOne({ ..._.pick(ctx.params, ['user', 'name']) }, { status: true }),
           ],
         });
 
@@ -171,6 +178,7 @@ module.exports = {
     },
     'process-status': {
       params: () => Joi.object().keys({
+        user: JOI_ID.required(),
         name: Joi.string().required(),
         process: Joi.string().required(),
         from: Joi.string().required(),
@@ -181,7 +189,7 @@ module.exports = {
       }),
       async handler(ctx) {
         const query = {
-          name: ctx.params.name,
+          ..._.pick(ctx.params, ['user', 'name']),
           'processes.action': ctx.params.process,
           'processes.status': ctx.params.from,
         };
@@ -205,11 +213,12 @@ module.exports = {
     },
     convert: {
       params: () => Joi.object().keys({
+        user: JOI_ID.required(),
         name: Joi.string().required(),
         ext: Joi.string().required(),
       }),
       async handler(ctx) {
-        const { entity, availableConversions } = await this.actions.getAvailableConversion({ name: ctx.params.name });
+        const { entity, availableConversions } = await this.actions.getAvailableConversion({ ..._.pick(ctx.params, ['user', 'name']) });
         if (!availableConversions.includes(ctx.params.ext)) {
           throw new MoleculerClientError('Conversion for media not available', 422, 'CLIENT_VALIDATION');
         }
@@ -222,18 +231,19 @@ module.exports = {
             },
           },
         };
-        await this.adapter.model.updateOne({ name: ctx.params.name }, updates);
-        ctx.emit('ffmpeg.convert', { ..._.pick(ctx.params, ['name', 'ext']), fromExt: entity.formats[0] });
+        await this.adapter.model.updateOne({ ..._.pick(ctx.params, ['user', 'name']) }, updates);
+        ctx.emit('ffmpeg.convert', { ..._.pick(ctx.params, ['name', 'user', 'ext']), fromExt: entity.formats[0] });
       },
     },
     addExt: {
       params: () => Joi.object().keys({
+        user: JOI_ID.required(),
         name: Joi.string().required(),
         ext: Joi.string().required(),
       }),
       async handler(ctx) {
         const query = {
-          name: ctx.params.name,
+          ..._.pick(ctx.params, ['user', 'name']),
           'processes.action': 'convert',
           'processes.ext': ctx.params.ext,
         };

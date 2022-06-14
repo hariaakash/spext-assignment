@@ -1,6 +1,9 @@
+const Joi = require('joi');
 const os = require('os');
 const async = require('async');
 const { MoleculerError } = require('moleculer').Errors;
+
+const { JOI_ID } = require('../utils/joi.schema');
 
 const environment = process.env.NODE_ENV || 'development';
 
@@ -17,9 +20,14 @@ module.exports = {
       },
     },
     constructUri: {
+      params: () => Joi.object().keys({
+        user: JOI_ID.required(),
+        name: Joi.string().required(),
+        ext: Joi.string().required(),
+      }),
       async handler(ctx) {
-        const { name, ext } = ctx.params;
-        const uri = `${environment}/${name}.${ext}`;
+        const { user, name, ext } = ctx.params;
+        const uri = `${environment}/${user}/${name}.${ext}`;
         return uri;
       },
     },

@@ -52,10 +52,10 @@ module.exports = {
   events: {
     'ffmpeg.convert': {
       async handler(ctx) {
-        // params: { name, fromExt, ext }
+        // params: { user, name, fromExt, ext }
         await async.auto({
           fetchFile: async () => {
-            const uri = await ctx.call('common.constructUri', { name: ctx.params.name, ext: ctx.params.fromExt });
+            const uri = await ctx.call('common.constructUri', { ..._.pick(ctx.params, ['user', 'name']), ext: ctx.params.fromExt });
             const res = await s3.get(uri);
             const fileName = nanoid();
             const fullName = `${fileName}.${ctx.params.fromExt}`;
@@ -64,7 +64,7 @@ module.exports = {
           },
           startProcess: async () => {
             await ctx.call('media.process-status', {
-              name: ctx.params.name,
+              ..._.pick(ctx.params, ['user', 'name']),
               process: 'convert',
               from: 'pending',
               to: 'started',
@@ -86,7 +86,7 @@ module.exports = {
           uploadFile: [
             'convert',
             async (res) => {
-              const uri = await ctx.call('common.constructUri', { name: ctx.params.name, ext: ctx.params.ext });
+              const uri = await ctx.call('common.constructUri', { ..._.pick(ctx.params, ['user', 'name', 'ext']) });
               const fileStream = fse.createReadStream(res.convert.to.fullPath);
               const { size } = await fse.stat(res.convert.to.fullPath);
               await s3.putObject(uri, {
@@ -94,7 +94,7 @@ module.exports = {
                 meta: { 'Content-Type': mime.lookup(ctx.params.ext) },
                 size,
               });
-              await ctx.call('media.addExt', { ..._.pick(ctx.params, ['name', 'ext']) });
+              await ctx.call('media.addExt', { ..._.pick(ctx.params, ['user', 'name', 'ext']) });
             },
           ],
           cleanUp: [

@@ -4,12 +4,14 @@ module.exports = {
   actions: {
     'media-list': {
       async handler(ctx) {
-        return ctx.call('media.paginatedList', { ...ctx.params });
+        const { query = {} } = ctx.params;
+        query.user = String(ctx.meta.user._id);
+        return ctx.call('media.paginatedList', { ...ctx.params, query });
       },
     },
     'media-get': {
       async handler(ctx) {
-        return ctx.call('media.get', { ...ctx.params });
+        return ctx.call('media.get', { ...ctx.params, user: String(ctx.meta.user._id) });
       },
     },
     'media-upload': {
@@ -19,6 +21,7 @@ module.exports = {
         if (!ctx.params) throw new MoleculerError('Media not found', 404, 'NOT_FOUND');
 
         return ctx.call('media.upload', {
+          user: String(ctx.meta.user._id),
           name,
           stream: ctx.params,
           mimetype: ctx.meta.mimetype,

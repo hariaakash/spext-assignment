@@ -1,6 +1,7 @@
 const { model, Schema } = require('mongoose');
 
 const schema = new Schema({
+  user: { type: Schema.Types.ObjectId, required: true },
   name: { type: String, required: true },
   codecType: { type: String },
   codecName: { type: String },
