@@ -19,12 +19,5 @@ module.exports = {
   disableBalancer,
   validator,
   serializer: 'ProtoBuf',
-  cacher: {
-    type: 'Memory',
-    options: {
-      ttl: 86400,
-      clone: true,
-    },
-  },
   internalServices: false,
 };
