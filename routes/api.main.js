@@ -8,6 +8,23 @@ const publicRoutes = [
     },
   },
   {
+    path: '/public',
+    aliases: {
+      'POST /create': 'apiMain.user-create',
+      'POST /login': 'apiMain.user-login',
+    },
+  },
+];
+
+const authorizedRoutes = [
+  {
+    path: '/user',
+    aliases: {
+      'GET /': 'apiMain.user-me',
+      'DELETE /': 'apiMain.user-logout',
+    },
+  },
+  {
     path: '/media',
     aliases: {
       'GET /': 'apiMain.media-list',
@@ -25,8 +42,6 @@ const publicRoutes = [
   },
 ];
 
-// const authorizedRoutes = [];
-
 module.exports = [
   ...publicRoutes.map((x) => ({
     ...x,
@@ -37,13 +52,13 @@ module.exports = [
       json: true,
     },
   })),
-  // ...authorizedRoutes.map((x) => ({
-  //   ...x,
-  //   authorization: true,
-  //   mappingPolicy: 'restrict',
-  //   ...RouterHooks,
-  //   bodyParsers: {
-  //     json: true,
-  //   },
-  // })),
+  ...authorizedRoutes.map((x) => ({
+    ...x,
+    authorization: true,
+    mappingPolicy: 'restrict',
+    ...RouterHooks,
+    bodyParsers: {
+      json: true,
+    },
+  })),
 ];
