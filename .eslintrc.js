@@ -13,5 +13,6 @@ module.exports = {
   rules: {
     'no-underscore-dangle': 0,
     'max-len': ['error', { code: 150 }],
+    'no-param-reassign': 0,
   },
 };
