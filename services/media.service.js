@@ -23,7 +23,8 @@ module.exports = {
     FFProbeMixin,
   ],
   settings: {
-    fields: ['_id', 'user', 'name', 'ext', 'codecType', 'codecName', 'duration', 'rawInfo', 'formats', 'processes', 'views', 'status'],
+    fields: ['_id', 'user', 'name', 'ext', 'codecType', 'codecName', 'duration', 'size', 'rawInfo',
+      'formats', 'processes', 'views', 'public', 'status'],
   },
   actions: {
     paginatedList: {
@@ -131,10 +132,13 @@ module.exports = {
                 // 5.2. Upload
                 const fileStream = fse.createReadStream(res.storeFileLocally.path);
                 const { size } = await fse.stat(res.storeFileLocally.path);
-                await s3.putObject(uri, {
-                  stream: fileStream,
-                  meta: { 'Content-Type': ctx.params.mimetype },
-                  size,
+                await async.parallel({
+                  upload: async () => s3.putObject(uri, {
+                    stream: fileStream,
+                    meta: { 'Content-Type': ctx.params.mimetype },
+                    size,
+                  }),
+                  updateFileSize: async () => this.adapter.model.updateOne({ ..._.pick(ctx.params, ['user', 'name']) }, { size }),
                 });
 
                 // 5.3. WIP update upload progress
@@ -258,6 +262,18 @@ module.exports = {
         await this.adapter.model.updateOne(query, updates);
       },
     },
+    publicStatusToggle: {
+      params: () => Joi.object().keys({
+        user: JOI_ID.required(),
+        name: Joi.string().required(),
+      }),
+      async handler(ctx) {
+        const entity = await this.actions.get(ctx.params);
+        const query = { ..._.pick(ctx.params, ['user', 'name']) };
+        const updates = { public: !entity.public };
+        await this.adapter.model.updateOne(query, updates);
+      },
+    },
     analytics: {
       params: () => Joi.object().keys({
         user: JOI_ID,
@@ -267,7 +283,7 @@ module.exports = {
 
         const res = {};
         // Format count
-        ['views', 'duration', 'durationAvg'].forEach((x) => {
+        ['views', 'duration', 'durationAvg', 'size', 'sizeAvg'].forEach((x) => {
           const [y] = data[x] ?? [{}];
           res[x] = y && y.count ? _.round(y.count, 2) : 0;
         });

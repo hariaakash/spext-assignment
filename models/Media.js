@@ -6,6 +6,7 @@ const schema = new Schema({
   codecType: { type: String },
   codecName: { type: String },
   duration: { type: Number },
+  size: { type: Number },
   rawInfo: { type: Schema.Types.Mixed },
   formats: [String],
   processes: [
@@ -22,6 +23,7 @@ const schema = new Schema({
     },
   ],
   views: { type: Number, default: 0 },
+  public: { type: Boolean, default: false },
   status: { type: Boolean, default: false },
 }, {
   timestamps: true,
