@@ -315,6 +315,25 @@ module.exports = {
         return res;
       },
     },
+    getPublic: {
+      params: () => Joi.object().keys({
+        id: JOI_ID.required(),
+        ext: Joi.string(),
+      }),
+      async handler(ctx) {
+        const query = {
+          _id: ctx.params.id,
+          status: true,
+          public: true,
+        };
+        if (ctx.params.ext) query.formats = ctx.params.ext;
+
+        const entity = await this.adapter.model.findOne(query);
+        if (!entity) throw new MoleculerClientError('Media not found or inactive', 404, 'NOT_FOUND');
+
+        return entity;
+      },
+    },
   },
   events: {
     'media.view': {

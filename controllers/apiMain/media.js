@@ -11,7 +11,10 @@ module.exports = {
     },
     'media-get': {
       async handler(ctx) {
-        return ctx.call('media.get', { ...ctx.params, user: String(ctx.meta.user._id) });
+        const entity = await ctx.call('media.get', { ...ctx.params, user: String(ctx.meta.user._id) });
+        const res = entity.toJSON();
+        if (res.public) res.url = `public/media/${String(res._id)}`;
+        return res;
       },
     },
     'media-publicStatus': {

@@ -12,6 +12,7 @@ const publicRoutes = [
     aliases: {
       'POST /create': 'apiMain.user-create',
       'POST /login': 'apiMain.user-login',
+      'GET /media/:id': 'apiMain.file-getPublic',
     },
   },
 ];
