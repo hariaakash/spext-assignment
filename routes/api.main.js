@@ -47,6 +47,13 @@ const authorizedRoutes = [
       'GET /fetch/:name': 'apiMain.download-fetch',
     },
   },
+  {
+    path: '/stats',
+    aliases: {
+      'GET /global': 'apiMain.stats-global',
+      'GET /': 'apiMain.stats-user',
+    },
+  },
 ];
 
 module.exports = [

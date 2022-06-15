@@ -12,6 +12,7 @@ const FFProbeMixin = require('../mixins/ffprobe.mixin');
 const model = require('../models/Media');
 const { JOI_ID } = require('../utils/joi.schema');
 const conversions = require('../static/conversions');
+const { getAnalytics } = require('../aggregates/media');
 
 const availableExtensions = [...conversions.audio, ...conversions.video];
 
@@ -255,6 +256,33 @@ module.exports = {
           'processes.$.updatedAt': Date.now(),
         };
         await this.adapter.model.updateOne(query, updates);
+      },
+    },
+    analytics: {
+      params: () => Joi.object().keys({
+        user: JOI_ID,
+      }),
+      async handler(ctx) {
+        const [data] = await this.adapter.model.aggregate(getAnalytics(ctx.params));
+
+        const res = {};
+        // Format count
+        ['views', 'duration', 'durationAvg'].forEach((x) => {
+          const [y] = data[x] ?? [{}];
+          res[x] = y && y.count ? _.round(y.count, 2) : 0;
+        });
+        // Format grouped count
+        ['mediaTypes', 'formats'].forEach((x) => {
+          res[x] = {};
+          const y = data[x] ?? [];
+          if (y.length) {
+            y.forEach((z) => {
+              res[x][z._id] = z.count;
+            });
+          }
+        });
+
+        return res;
       },
     },
   },

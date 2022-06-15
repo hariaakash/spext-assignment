@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const Joi = require('joi');
 const os = require('os');
 const async = require('async');
@@ -36,7 +37,7 @@ module.exports = {
     ramUsage: {
       async handler() {
         const used = (await process.memoryUsage().heapUsed) / 1024 / 1024;
-        const usedMem = Math.round(used * 100) / 100;
+        const usedMem = _.round(used, 2);
         if (!usedMem) throw new MoleculerError('can not get usage', 500, 'SERVER_ERROR');
         return `${usedMem}MB`;
       },

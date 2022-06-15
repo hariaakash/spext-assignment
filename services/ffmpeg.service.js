@@ -20,7 +20,7 @@ module.exports = {
           await ffmpeg.load();
           // WIP Update Progress
           // ffmpeg.setProgress(({ ratio }) => {
-          //   const percent = Math.round(ratio * 100, 2);
+          //   const percent = _.round(ratio * 100, 2);
           //   const reqData = {
           //     name,
           //     process: 'convert',
