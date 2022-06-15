@@ -1,0 +1,6 @@
+.github
+.eslint*
+data
+node_modules
+README.md
+example.env
