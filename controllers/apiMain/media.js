@@ -14,6 +14,11 @@ module.exports = {
         return ctx.call('media.get', { ...ctx.params, user: String(ctx.meta.user._id) });
       },
     },
+    'media-publicStatus': {
+      async handler(ctx) {
+        return ctx.call('media.publicStatusToggle', { ...ctx.params, user: String(ctx.meta.user._id) });
+      },
+    },
     'media-upload': {
       async handler(ctx) {
         const { name } = ctx.meta.$params;

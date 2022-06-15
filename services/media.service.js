@@ -285,6 +285,7 @@ module.exports = {
         const query = { ..._.pick(ctx.params, ['user', 'name']) };
         const updates = { public: !entity.public };
         await this.adapter.model.updateOne(query, updates);
+        return { message: 'Public status toggled', current: !entity.public };
       },
     },
     analytics: {
