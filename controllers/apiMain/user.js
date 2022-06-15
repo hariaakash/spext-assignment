@@ -5,7 +5,7 @@ module.exports = {
     'user-create': {
       async handler(ctx) {
         const user = await ctx.call('user.create', { ...ctx.params });
-        const session = ctx.call('session.create', {
+        const session = await ctx.call('session.create', {
           user: String(user._id),
           ip: ctx.meta.ip,
           device: 'laptop',
