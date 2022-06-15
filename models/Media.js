@@ -21,6 +21,7 @@ const schema = new Schema({
       ext: { type: String },
     },
   ],
+  views: { type: Number, default: 0 },
   status: { type: Boolean, default: false },
 }, {
   timestamps: true,

@@ -22,7 +22,7 @@ module.exports = {
     FFProbeMixin,
   ],
   settings: {
-    fields: ['_id', 'user', 'name', 'ext', 'codecType', 'codecName', 'duration', 'rawInfo', 'formats', 'processes', 'status'],
+    fields: ['_id', 'user', 'name', 'ext', 'codecType', 'codecName', 'duration', 'rawInfo', 'formats', 'processes', 'views', 'status'],
   },
   actions: {
     paginatedList: {
@@ -47,7 +47,7 @@ module.exports = {
         name: Joi.string().required(),
       }),
       async handler(ctx) {
-        const entity = await this.adapter.model.findOne({ ..._.pick(ctx.params, ['name', 'user']) });
+        const entity = await this.adapter.model.findOne({ ..._.pick(ctx.params, ['user', 'name']) });
         if (!entity) throw new MoleculerClientError('Media not found', 404, 'NOT_FOUND');
 
         return entity;
@@ -233,6 +233,7 @@ module.exports = {
         };
         await this.adapter.model.updateOne({ ..._.pick(ctx.params, ['user', 'name']) }, updates);
         ctx.emit('ffmpeg.convert', { ..._.pick(ctx.params, ['name', 'user', 'ext']), fromExt: entity.formats[0] });
+        return { message: 'Conversion process has been initiated' };
       },
     },
     addExt: {
@@ -257,12 +258,11 @@ module.exports = {
       },
     },
   },
-  methods: {
-    'entity-assert': {
+  events: {
+    'media.view': {
       async handler(ctx) {
-        const query = { ..._.pick(ctx.params, ['entity', 'entityId']) };
-        ctx.locals.file = await this.adapter.model.findOne(query);
-        if (!ctx.locals.file) ctx.locals.file = await this.adapter.insert(query);
+        // params: { user, name, ext }
+        await this.adapter.model.updateOne({ ..._.pick(ctx.params, ['user', 'name']) }, { $inc: { views: 1 } });
       },
     },
   },

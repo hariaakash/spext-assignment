@@ -9,12 +9,12 @@ module.exports = {
     },
     'conversion-get': {
       async handler(ctx) {
-        return ctx.call('media.getAvailableConversion', { ...ctx.params });
+        return ctx.call('media.getAvailableConversion', { ...ctx.params, user: String(ctx.meta.user._id) });
       },
     },
     'conversion-process': {
       async handler(ctx) {
-        return ctx.call('media.convert', { ...ctx.params });
+        return ctx.call('media.convert', { ...ctx.params, user: String(ctx.meta.user._id) });
       },
     },
   },

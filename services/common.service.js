@@ -27,7 +27,7 @@ module.exports = {
       }),
       async handler(ctx) {
         const { user, name, ext } = ctx.params;
-        const uri = `${environment}/${user}/${name}.${ext}`;
+        const uri = `${environment}/${user}/${name}/${name}.${ext}`;
         return uri;
       },
     },

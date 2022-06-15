@@ -40,6 +40,13 @@ const authorizedRoutes = [
       'POST /:name': 'apiMain.conversion-process',
     },
   },
+  {
+    path: '/download',
+    aliases: {
+      'GET /stream/:name': 'apiMain.download-stream',
+      'GET /fetch/:name': 'apiMain.download-fetch',
+    },
+  },
 ];
 
 module.exports = [
