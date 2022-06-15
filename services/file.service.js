@@ -6,7 +6,7 @@ const s3 = require('../utils/s3.client');
 const { JOI_ID } = require('../utils/joi.schema');
 
 module.exports = {
-  name: 'download',
+  name: 'file',
   hooks: {
     before: {
       stream: ['media-get'],

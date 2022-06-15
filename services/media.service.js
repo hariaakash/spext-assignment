@@ -55,6 +55,19 @@ module.exports = {
         return entity;
       },
     },
+    delete: {
+      params: () => Joi.object().keys({
+        user: JOI_ID.required(),
+        name: Joi.string().required(),
+      }),
+      async handler(ctx) {
+        const entity = await this.adapter.model.findOneAndDelete({ ..._.pick(ctx.params, ['user', 'name']) });
+        if (!entity) throw new MoleculerClientError('Media not found', 404, 'NOT_FOUND');
+        ctx.emit('file.delete', { ..._.pick(ctx.params, ['user', 'name']) });
+
+        return { message: 'Media deleted' };
+      },
+    },
     upload: {
       params: () => Joi.object().keys({
         user: JOI_ID.required(),

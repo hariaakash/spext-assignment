@@ -2,9 +2,9 @@ const mime = require('mime-types');
 
 module.exports = {
   actions: {
-    'download-stream': {
+    'file-stream': {
       async handler(ctx) {
-        const { stream, name, ext } = await ctx.call('download.stream', { ...ctx.params, user: String(ctx.meta.user._id) });
+        const { stream, name, ext } = await ctx.call('file.stream', { ...ctx.params, user: String(ctx.meta.user._id) });
         ctx.meta.$responseType = mime.lookup(ext);
         ctx.meta.$responseHeaders = {
           'Content-Disposition': `attachment; filename="data-${name}.${ext}"`,
@@ -12,9 +12,9 @@ module.exports = {
         return stream;
       },
     },
-    'download-fetch': {
+    'file-fetch': {
       async handler(ctx) {
-        const url = await ctx.call('download.fetch', { ...ctx.params, user: String(ctx.meta.user._id) });
+        const url = await ctx.call('file.fetch', { ...ctx.params, user: String(ctx.meta.user._id) });
         ctx.meta.$statusCode = 302;
         ctx.meta.$location = url;
       },

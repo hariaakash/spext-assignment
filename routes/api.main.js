@@ -41,10 +41,10 @@ const authorizedRoutes = [
     },
   },
   {
-    path: '/download',
+    path: '/file',
     aliases: {
-      'GET /stream/:name': 'apiMain.download-stream',
-      'GET /fetch/:name': 'apiMain.download-fetch',
+      'GET /stream/:name': 'apiMain.file-stream',
+      'GET /fetch/:name': 'apiMain.file-fetch',
     },
   },
   {
