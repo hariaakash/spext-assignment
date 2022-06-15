@@ -28,5 +28,10 @@ module.exports = {
         });
       },
     },
+    'media-delete': {
+      async handler(ctx) {
+        return ctx.call('media.delete', { ...ctx.params, user: String(ctx.meta.user._id) });
+      },
+    },
   },
 };

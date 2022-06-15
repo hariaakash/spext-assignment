@@ -20,4 +20,5 @@ module.exports = {
   putObject: async (name, { stream, meta, size }) => minioClient.putObject(bucket, name, stream, size, meta),
   get: async (name) => minioClient.presignedGetObject(bucket, name, 10 * 60),
   getStream: async (name) => minioClient.getObject(bucket, name, 10 * 60),
+  delete: async (name) => minioClient.removeObject(bucket, name),
 };

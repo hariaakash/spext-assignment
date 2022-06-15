@@ -63,7 +63,7 @@ module.exports = {
       async handler(ctx) {
         const entity = await this.adapter.model.findOneAndDelete({ ..._.pick(ctx.params, ['user', 'name']) });
         if (!entity) throw new MoleculerClientError('Media not found', 404, 'NOT_FOUND');
-        ctx.emit('file.delete', { ..._.pick(ctx.params, ['user', 'name']) });
+        ctx.emit('file.delete', { ..._.pick(ctx.params, ['user', 'name']), formats: entity.formats });
 
         return { message: 'Media deleted' };
       },

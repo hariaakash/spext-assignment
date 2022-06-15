@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const async = require('async');
 const Joi = require('joi');
 const { MoleculerClientError } = require('moleculer').Errors;
 
@@ -59,6 +60,17 @@ module.exports = {
       async handler(ctx, res) {
         ctx.emit('media.view', { ..._.pick(ctx.params, ['user', 'name']), ext: ctx.locals.ext });
         return res;
+      },
+    },
+  },
+  events: {
+    'file.delete': {
+      async handler(ctx) {
+        // params: { user, name, formats }
+        await async.eachLimit(ctx.params.formats, 2, async (ext) => {
+          const uri = await ctx.call('common.constructUri', { ..._.pick(ctx.params, ['user', 'name']), ext });
+          await s3.delete(uri);
+        });
       },
     },
   },

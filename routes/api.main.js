@@ -30,6 +30,7 @@ const authorizedRoutes = [
       'GET /': 'apiMain.media-list',
       'GET /:name': 'apiMain.media-get',
       'POST /:name': 'multipart:apiMain.media-upload',
+      'DELETE /:name': 'apiMain.media-delete',
     },
   },
   {
