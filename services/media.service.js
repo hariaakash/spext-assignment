@@ -74,7 +74,7 @@ module.exports = {
             const process = { action: 'upload' };
             const ext = mime.extension(ctx.params.mimetype);
             if (!availableExtensions.includes(ext)) {
-              throw new MoleculerClientError('File type not supported', 422, 'CLIENT_VALIDATION', { conversions });
+              throw new MoleculerClientError('File type not supported', 422, 'CLIENT_VALIDATION', { conversions, ext });
             }
             const res = await this.adapter.insert({
               ..._.pick(ctx.params, ['user', 'name']),
