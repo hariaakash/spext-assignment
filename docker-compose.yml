@@ -21,8 +21,8 @@ services:
             # ADAPTER: mongodb+srv://node:w3i3zJs4LQbfXLSD@spext.2r6nh.mongodb.net/spext?retryWrites=true&w=majority
             LOGLEVEL: debug
             S3_URI: storage.googleapis.com
-            S3_ACCESS_KEY: GOOG1ETTBFXU2NF6M3PIVESBBLBDSZZGTJY6AA25A24LAXE7NAGAP6YMGP3SI
-            S3_SECRET_KEY: vRpIp5SjK95lV58CjlBgKU4vmXB7cMVmaN/b1RSq
+            S3_ACCESS_KEY: GOOG1E75WTNXF3BRCYY5X6ALURQSBXSTOCOO7ODU7KFXMGYEF6ZOGC3XMY3UY
+            S3_SECRET_KEY: BsMlwab9DBOSVcW8n/DQnjz9+/v+WAziFthJHXr0
             S3_BUCKET: spext
             S3_REGION: asia-south1
         volumes:
