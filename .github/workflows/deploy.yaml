@@ -28,7 +28,7 @@ jobs:
         name: GCP App Engine Deploy
         uses: google-github-actions/deploy-appengine@v0.8.0
         with:
-          version: main
+          version: master
       
       - name: URL
         run: 'echo ${{ steps.deploy.outputs.url }}'
