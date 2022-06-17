@@ -124,7 +124,7 @@ module.exports = {
             'getMediaMeta',
             async (res) => {
               const update = { ..._.pick(res.getMediaMeta, ['codecType', 'codecName', 'duration', 'rawInfo']) };
-              await this.adapter.model.updateOne({ name: ctx.params.name }, update);
+              await this.adapter.model.updateOne({ ..._.pick(ctx.params, ['user', 'name']) }, update);
             },
           ],
           // 5. Upload file to s3 (depends on 1 & 3)
